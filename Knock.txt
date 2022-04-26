@@ -1,0 +1,160 @@
+// newebtan
+/* ---------------------------------------------------------------- [ Knock ] */
+new Float:KnockPos[MAX_PLAYERS][3];
+new Text3D:KnockText[MAX_PLAYERS];
+new bool:Knock[MAX_PLAYERS];
+new PlayerText:knock_PTD[MAX_PLAYERS][1];
+
+
+
+
+
+
+
+
+
+
+
+// onplayerconnect
+    Knock[playerid] = false;
+    ApplyAnimation(playerid,"PED","KO_shot_stom",0.0,0,0,0,0,0);
+    knock_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 312.0000, 382.8889, "100/120"); // пусто
+	PlayerTextDrawLetterSize(playerid, knock_PTD[playerid][0], 0.5130, 2.0479);
+	PlayerTextDrawAlignment(playerid, knock_PTD[playerid][0], 2);
+	PlayerTextDrawColor(playerid, knock_PTD[playerid][0], -5963521);
+	PlayerTextDrawSetOutline(playerid, knock_PTD[playerid][0], -1);
+	PlayerTextDrawBackgroundColor(playerid, knock_PTD[playerid][0], 255);
+	PlayerTextDrawFont(playerid, knock_PTD[playerid][0], 1);
+	PlayerTextDrawSetProportional(playerid, knock_PTD[playerid][0], 1);
+	PlayerTextDrawSetShadow(playerid, knock_PTD[playerid][0], 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//// onplayerdeath
+	if(PlayerInfo[playerid][pMember] == 0 && PlayerInfo[playerid][pWantedLevel] == 0)
+	{
+		if(Knock[playerid] == false)
+		{
+		    Knock[playerid] = true;
+		    GetPlayerPos(playerid, KnockPos[playerid][0], KnockPos[playerid][1], KnockPos[playerid][2]);
+		}
+		else
+		{
+			Knock[playerid] = false;
+			ClearAnimations(playerid);
+			TogglePlayerControllable(playerid, true);
+			Knock[playerid] = false;
+			PlayerTextDrawHide(playerid, knock_PTD[playerid][0]);
+			SetPVarInt(playerid, "KillTime", 0);
+			Delete3DTextLabel(KnockText[playerid]);
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+// onplayerspawn (boloshi)
+	if(Knock[playerid] == true)
+	{
+		TogglePlayerControllable(playerid, false);
+		SetPlayerPos(playerid, KnockPos[playerid][0], KnockPos[playerid][1], KnockPos[playerid][2]);
+		SetPVarInt(playerid, "KillTime", 120);
+		ApplyAnimation(playerid,"PED","KO_shot_stom",4.0,0,1,1,1,0);
+		SendClientMessage(playerid, -1, "{35ECBF}[Knock]{ffffff} Tkven Dainoket, Tkven Mokvdebit 2 Wutshi");
+		PlayerTextDrawShow(playerid, knock_PTD[playerid][0]);
+		KnockText[playerid] = Create3DTextLabel("{35ECBF}(( Motamashe Cudadaa ))\nGamoikenet: /helps", 0x008080FF, KnockPos[playerid][0], KnockPos[playerid][1], KnockPos[playerid][2], 40.0, 0, 0);
+	}
+	else TogglePlayerControllable(playerid, true), Delete3DTextLabel(KnockText[playerid]);
+
+
+
+
+
+
+
+
+
+
+
+// fresh (timer)
+        if(GetPVarInt(i, "KillTime") > 0)
+        {
+			SetPVarInt(i, "KillTime", GetPVarInt(i, "KillTime") - 1);
+   			new stringg[25];
+	    	format(stringg, 25, "%d/120",GetPVarInt(i, "KillTime"));
+		    PlayerTextDrawSetString(i, knock_PTD[i][0], stringg);
+			if(GetPVarInt(i, "KillTime") <= 1)
+			{
+				Knock[i] = false;
+				ClearAnimations(i);
+				TogglePlayerControllable(i, true);
+				Knock[i] = false;
+				PlayerTextDrawHide(i, knock_PTD[i][0]);
+				SetPVarInt(i, "KillTime", 0);
+				SpawnPlayer(i);
+				Delete3DTextLabel(KnockText[i]);
+				SendClientMessage(i, -1, "{35ECBF}[Knock]{ffffff} Tkven Mokvdit");
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+// cmd
+CMD:helps(playerid, params[])
+{
+    if(PlayerInfo[playerid][pLogin] == 0) return 1;
+    if(sscanf(params, "d", params[0])) return SendClientMessage(playerid, -1, "{35ECBF}[Shecdoma]{ffffff} Gamoikenet: /help [Player ID]");
+    if(params[0] == playerid) return SendClientMessage(playerid, -1, "{35ECBF}[Shecdoma]{ffffff} Tkven Ver Miutitebt Tkvens ID's");
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(params[0], x, y, z);
+    if(!IsPlayerInRangeOfPoint(playerid, 5.0, x, y, z)) return SendClientMessage(playerid, -1, "{35ECBF}[Shecdoma]{ffffff} Tkven Ar Xart Danokil Motamashestan Axlos");
+	ClearAnimations(params[0]);
+	TogglePlayerControllable(params[0], true);
+	Knock[params[0]] = false;
+	PlayerTextDrawHide(params[0], knock_PTD[params[0]][0]);
+	SetPVarInt(params[0], "KillTime", 0);
+	Delete3DTextLabel(KnockText[params[0]]);
+	return 1;
+}
+
+
+
+
+
+
+// onplayerupdate
+	if(Knock[playerid] == true && !IsPlayerInRangeOfPoint(playerid, 5.0, KnockPos[playerid][0], KnockPos[playerid][1], KnockPos[playerid][2]))
+	{
+	    SetPlayerPos(playerid, KnockPos[playerid][0], KnockPos[playerid][1], KnockPos[playerid][2]);
+	}
+	if(Knock[playerid] == true && GetPlayerAnimationIndex(playerid) != 1207)
+	{
+	    ApplyAnimation(playerid,"PED","KO_shot_stom",4.0,0,1,1,1,0);
+	}
